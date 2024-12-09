@@ -9,6 +9,10 @@ contract Auction{
     address public  highestBidder;
 
      bool endAuction ;
+
+     event NewBid(address indexed bidder,uint amount);
+     event AuctionEnded(address winner,uint amount);
+     event RefundIssued(address indexed refund, uint amount);
     
 
     constructor(uint _startingAmount) payable {
@@ -37,6 +41,8 @@ contract Auction{
        
         payable (previousBidder).transfer(amount);
 
+        emit RefundIssued(previousBidder, amount);
+
     }
 
     function bid() public payable  auctionOngoing {
@@ -48,6 +54,9 @@ contract Auction{
 
         maxAmount=msg.value;
         highestBidder=msg.sender;
+        emit NewBid(highestBidder,maxAmount);
+
+        
     
     }
 
@@ -58,8 +67,11 @@ contract Auction{
 
     function endFunc() public  onlyOwner auctionOngoing{
         endAuction=true;
-
-        payable (owner).transfer(maxAmount);
+        
+        if(maxAmount!=startingAmount){
+            payable (owner).transfer(maxAmount);
+        }
+        emit AuctionEnded(highestBidder, maxAmount);
        
 
 
